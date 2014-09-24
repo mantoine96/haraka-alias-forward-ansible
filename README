@@ -1,0 +1,1 @@
+This project is an attempt at creating an Ansible playbook capable of setting up a bare Debian server to a fully functional Haraka server, using haraka-list
