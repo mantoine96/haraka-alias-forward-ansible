@@ -1,0 +1,153 @@
+---
+- hosts: all
+  remote_user: root
+
+  vars:
+    # Timezone
+    timezone: 'Europe/Paris'
+    # Node
+    node_version: "0.10.32"
+    node_prefix: "node-v{{node_version}}"
+    node_tarball: "{{node_prefix}}.tar.gz"
+    node_path: "/usr/local"
+  tasks:
+
+#########################
+# User management       #
+#########################
+	# First, create users
+    - name: Create user {{user1}} 
+      user: name={{ user1 }}
+            comment="{{user1}} user"
+	    shell=/bin/bash
+
+    - name: Create user {{user2}}
+      user: name={{user2}}
+	    comment="{{user2}} user"
+	    shell=/bin/bash
+
+        # Force users to change their passwords at launch
+    - name: Force-change password
+      shell: chage -d 0 $user1 && chage -d 0 $user2
+
+    - name: Add {{user1}} to sudoers
+      template: src=templates/sudoers-user.j2
+     		dest=/etc/sudoers.d/{{user1}}-sudoer
+		validate='visudo -cf %s'
+
+    - name: Add {{user2}} to sudoers
+      template: src=templates/sudoers-user.j2
+     		dest=/etc/sudoers.d/{{user2}}-sudoer
+		validate='visudo -cf %s'
+
+    - name: Add my public key to {{ user2 }}
+      authorized_key: user={{ user2 }}
+                      key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+
+#########################
+# Time Management       #
+#########################
+
+     - name: Set local timezone
+       copy: content={{ timezone }}
+	     dest=/etc/timezone
+       notify: update tzdata
+
+     - name: Install NTP
+       apt: name=ntp state=present
+	    update_cache=yes
+    
+     - name: Start NTP service
+       service: name=ntp state=started enabled=true
+
+##########################
+# Security               #
+##########################
+
+    - name: Install fail2ban
+      apt: name=fail2ban state=present
+
+    - name: Start fail2ban service
+      service: name=fail2ban state=started enabled=true
+
+    - name: Copy iptables rules
+      copy: src=files/iptables.up
+            dest=/etc/iptables.up
+      notify: reload iptables
+
+    - name: Copy iptables init script # To load iptables on server restart
+      copy: src=files/iptables-script
+            dest=/etc/network/if-pre-up.d/iptables
+            mode=0755
+
+    - name: Disallow root SSH access
+      action: lineinfile dest=/etc/ssh/sshd_config regexp="^PermitRootLogin" line="PermitRootLogin no" state=present
+      notify: Restart sshd
+
+##########################
+# Software               #
+##########################
+
+    - name: Install Git
+      apt: name=git state=present
+
+#NODE JS thanks to : https://github.com/aenglund/nodejs-ansible/ #
+
+    - name: Node.js | Checking installed version of node.js
+      shell: /usr/bin/test "$(node -v 2> /dev/null)" = v{{node_version}}
+      register: wanted_version_installed
+      ignore_errors: True
+
+    - name: Node.js | Fetching node.js source
+      action: get_url url=http://nodejs.org/dist/v{{node_version}}/{{node_tarball}} dest=/tmp/
+      when: wanted_version_installed.rc == 1
+
+    - name: Node.js | Unpack node.js tarball
+      command: tar zxf {{node_tarball}} chdir=/tmp
+      when: wanted_version_installed.rc == 1
+
+    - name: Node.js | Configure
+      shell: /usr/bin/python ./configure --prefix={{node_path}} chdir=/tmp/{{node_prefix}}
+      when: wanted_version_installed.rc == 1
+
+    - name: Node.js | Make
+      shell: /usr/bin/make chdir=/tmp/{{node_prefix}}/
+      when: wanted_version_installed.rc == 1
+
+    - name: Node.js | Make install
+      shell: /usr/bin/make install chdir=/tmp/{{node_prefix}}/
+      when: wanted_version_installed.rc == 1
+
+#Node.js install ends#
+
+    - name: Install Haraka
+      npm: name=haraka global=yes state=latest
+
+    - name: Install Forever
+      npm: name=forever global=yes state=latest
+    
+    - name: Generate Haraka-Server
+      command: "{{item}}"
+      with_items:
+	- mkdir /haraka
+	- haraka -i /haraka/server 
+
+    - name: Create Haraka-repo folder
+      command: mkdir /haraka/server.git
+
+    - name: Create repo
+
+    - name: Import hook
+    
+    - name: Apply files (public)
+
+
+    -
+    - name: Start Haraka
+      shell: forever haraka -c /haraka/haraka-server
+      
+
+  handlers:
+  - name: Restart sshd
+    action: service name=sshd state=restarted
