@@ -151,3 +151,7 @@
   handlers:
   - name: Restart sshd
     action: service name=sshd state=restarted
+  - name: reload iptables
+    action: shell /sbin/iptables-restore < /etc/iptables.up
+  - name: update tzdata
+    command: /usr/sbin/dpkg-reconfigure --frontend noninteractive tzdata
