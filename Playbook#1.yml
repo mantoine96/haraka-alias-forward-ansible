@@ -98,32 +98,46 @@
 
     #NODE JS thanks to : https://github.com/aenglund/nodejs-ansible/ 
 
-    - name: Node.js | Checking installed version of node.js
-      shell: /usr/bin/test "$(node -v 2> /dev/null)" = v{{node_version}}
-      register: wanted_version_installed
-      ignore_errors: True
+    # - name: Node.js | Checking installed version of node.js
+    #   shell: /usr/bin/test "$(node -v 2> /dev/null)" = v{{node_version}}
+    #   register: wanted_version_installed
+    #   ignore_errors: True
 
-    - name: Node.js | Fetching node.js source
-      action: get_url url=http://nodejs.org/dist/v{{node_version}}/{{node_tarball}} dest=/tmp/
-      when: wanted_version_installed.rc == 1
+    # - name: Node.js | Fetching node.js source
+    #   action: get_url url=http://nodejs.org/dist/v{{node_version}}/{{node_tarball}} dest=/tmp/
+    #   when: wanted_version_installed.rc == 1
 
-    - name: Node.js | Unpack node.js tarball
-      command: tar zxf {{node_tarball}} chdir=/tmp
-      when: wanted_version_installed.rc == 1
+    # - name: Node.js | Unpack node.js tarball
+    #   command: tar zxf {{node_tarball}} chdir=/tmp
+    #   when: wanted_version_installed.rc == 1
 
-    - name: Node.js | Configure
-      shell: /usr/bin/python ./configure --prefix={{node_path}} chdir=/tmp/{{node_prefix}}
-      when: wanted_version_installed.rc == 1
+    # - name: Node.js | Configure
+    #   shell: /usr/bin/python ./configure --prefix={{node_path}} chdir=/tmp/{{node_prefix}}
+    #   when: wanted_version_installed.rc == 1
 
-    - name: Node.js | Make
-      shell: /usr/bin/make chdir=/tmp/{{node_prefix}}/
-      when: wanted_version_installed.rc == 1
+    # - name: Node.js | Make
+    #   shell: /usr/bin/make chdir=/tmp/{{node_prefix}}/
+    #   when: wanted_version_installed.rc == 1
 
-    - name: Node.js | Make install
-      shell: /usr/bin/make install chdir=/tmp/{{node_prefix}}/
-      when: wanted_version_installed.rc == 1
+    # - name: Node.js | Make install
+    #   shell: /usr/bin/make install chdir=/tmp/{{node_prefix}}/
+    #   when: wanted_version_installed.rc == 1
+    - name: Install Node.JS
+      apt: name=nodejs state=present
+
+    - name: Install Node.JS-legacy
+      apt: name=nodejs-legacy state=present
+
+    - name: Install Node.JS-NPM
+      apt: name=npm state=present
+
+    - name: Make alias node
+      file: src=/usr/bin/nodejs dest=/usr/bin/node state=link 
 
     #Node.js install ends
+
+    - name: Remove Exim4
+      apt: name=exim4 state=absent
 
     - name: Install Haraka
       npm: name=Haraka global=yes state=latest
@@ -132,12 +146,11 @@
       npm: name=forever global=yes state=latest
 
     - name: Prepare folders for Haraka Server
-      command : mkdir /haraka
+      file: path=/haraka state=directory mode="777"
 
     - name: Download Haraka-Server
-      git: repo=git@gitlab.sodewiva.com:mantoine/haraka-list-server.git
-          accept_hostkey=true
-           dest=/haraka/server
+      git: repo=http://gitlab.sodewiva.com/mantoine/haraka-list-server.git
+            dest=/haraka/server
 
     #- name: Create repo
 
@@ -146,8 +159,10 @@
    # - name: Apply files (public)
 
     - name: Start Haraka
-      shell: forever haraka -c /haraka/haraka-server
-
+      command: /usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/haraka-server
+    #Adding forever to the crontab
+    - name: Crontab Haraka
+      cron: name="Forever haraka" special_time=reboot job="/usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/haraka-server"
 
   handlers:
   - name: Restart sshd
