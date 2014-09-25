@@ -136,8 +136,15 @@
 
     #Node.js install ends
 
+    # - name: Remove Exim4
+    #   apt:  name=$item state=absent
+    #   with_items:
+    #   - exim4
+    #   - exim4-base
+    #   - exim4-config
+    #   - exim4-daemon-light
     - name: Remove Exim4
-      apt: name=exim4 state=absent
+      apt: name=exim4* state=absent
 
     - name: Install Haraka
       npm: name=Haraka global=yes state=latest
@@ -159,10 +166,10 @@
    # - name: Apply files (public)
 
     - name: Start Haraka
-      command: /usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/haraka-server
+      command: /usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server
     #Adding forever to the crontab
     - name: Crontab Haraka
-      cron: name="Forever haraka" special_time=reboot job="/usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/haraka-server"
+      cron: name="Forever haraka" special_time=reboot job="/usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server"
 
   handlers:
   - name: Restart sshd
