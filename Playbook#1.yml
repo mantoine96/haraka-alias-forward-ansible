@@ -44,6 +44,9 @@
     - name: Force-change password for {{ user2 }}
       command: /usr/bin/chage -d 0 {{ user2 }}
 
+    - name: Verify Sudo
+      apt: name=sudo state=latest
+
     - name: Add {{ user1 }} to sudoers
       template: src=templates/sudoers-user1.j2
                 dest=/etc/sudoers.d/{{ user1 }}-sudoer
