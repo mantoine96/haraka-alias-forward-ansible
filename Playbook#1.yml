@@ -6,10 +6,10 @@
     # Timezone
     timezone: 'Europe/Paris'
     # Node
-    node_version: "0.10.32"
-    node_prefix: "node-v{{node_version}}"
-    node_tarball: "{{node_prefix}}.tar.gz"
-    node_path: "/usr/local"
+    # node_version: "0.10.32"
+    # node_prefix: "node-v{{node_version}}"
+    # node_tarball: "{{node_prefix}}.tar.gz"
+    # node_path: "/usr/local"
   tasks:
 
 
@@ -31,9 +31,18 @@
             shell=/bin/bash
             password={{ password }}
 
-    # Force users to change their passwords at launch
-   # - name: Force-change password
-   #   shell: chage -d 0 $user1 && chage -d 0 $user2
+    - name: Kill user's processes
+      command: pkill -u user
+      ignore_errors: yes
+
+    - name: Delete user "user"
+      user: name=user state=absent remove=yes force=yes
+
+    - name: Force-change password {{ user1 }}
+      command: /usr/bin/chage -d 0 {{ user1 }}
+
+    - name: Force-change password for {{ user2 }}
+      command: /usr/bin/chage -d 0 {{ user2 }}
 
     - name: Add {{ user1 }} to sudoers
       template: src=templates/sudoers-user1.j2
@@ -93,10 +102,13 @@
     # Software               
     ##########################
 
+    - name: Update packages
+      apt: update_cache=yes upgrade=yes
+
     - name: Install Git
       apt: name=git state=present
 
-    #NODE JS thanks to : https://github.com/aenglund/nodejs-ansible/ 
+    #NODE JS thanks to : https://github.com/aenglund/nodejs-ansible/ || Deprecated, now using package manager (and getting always the newest Nodejs)
 
     # - name: Node.js | Checking installed version of node.js
     #   shell: /usr/bin/test "$(node -v 2> /dev/null)" = v{{node_version}}
@@ -122,6 +134,7 @@
     # - name: Node.js | Make install
     #   shell: /usr/bin/make install chdir=/tmp/{{node_prefix}}/
     #   when: wanted_version_installed.rc == 1
+
     - name: Install Node.JS
       apt: name=nodejs state=present
 
@@ -143,6 +156,7 @@
     #   - exim4-base
     #   - exim4-config
     #   - exim4-daemon-light
+
     - name: Remove Exim4
       apt: name=exim4* state=absent
 
@@ -160,11 +174,16 @@
             dest=/haraka/server
 
     #- name: Create repo
-
+    - name: Clone haraka-list-testconfig
+      git: repo=http://gitlab.sodewiva.com/mantoine/haraka-list-testconfig.git 
+           bare=yes
+           dest=/haraka/haraka-list
     #- name: Import hook
-
+    - name: Import hook post-receive
+      copy: src=files/post-receive
+            dest=/haraka/haraka-list/hooks/post-receive
    # - name: Apply files (public)
-
+   # Demander à Guillaume les commandes restantes
     - name: Start Haraka
       command: /usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server
     #Adding forever to the crontab
