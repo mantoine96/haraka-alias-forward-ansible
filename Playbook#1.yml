@@ -182,7 +182,10 @@
     - name: Import hook post-receive
       copy: src=files/post-receive
             dest=/haraka/haraka-list/hooks/post-receive
-   # - name: Apply files (public)
+   # - name: Git add remote
+    - name: Git Add Remote
+      command: cd /haraka/haraka-list.git && git checkout master -f &&  git remote set-url production --push --add {{ user1 }}@{{groups['haraka'] }}
+
    # Demander à Guillaume les commandes restantes
     - name: Start Haraka
       command: /usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server
