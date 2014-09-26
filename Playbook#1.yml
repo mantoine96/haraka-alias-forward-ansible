@@ -182,6 +182,7 @@
     - name: Import hook post-receive
       copy: src=files/post-receive
             dest=/haraka/haraka-list/hooks/post-receive
+            mode=777
    # - name: Git add remote
     - name: Git Add Remote
       command: cd /haraka/haraka-list.git && git checkout master -f &&  git remote set-url production --push --add {{ user1 }}@{{groups['haraka'] }}
