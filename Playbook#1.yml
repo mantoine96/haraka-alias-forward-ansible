@@ -1,5 +1,5 @@
 ---
-- hosts: ansible
+- hosts: haraka
   remote_user: root
 
   vars:
