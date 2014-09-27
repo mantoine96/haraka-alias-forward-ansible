@@ -111,6 +111,9 @@
     - name: Install Git
       apt: name=git state=present
 
+    - name: Install Ruby
+      apt: name=ruby state=present
+
     #NODE JS thanks to : https://github.com/aenglund/nodejs-ansible/ || Deprecated, now using package manager (and getting always the newest Nodejs)
 
     # - name: Node.js | Checking installed version of node.js
@@ -139,23 +142,29 @@
     #   when: wanted_version_installed.rc == 1
     - name: Install curL
       apt: name=curl state=present
+      when: ansible_os_family == "Debian" and ansible_lsb.major_release|int <=7
+
     - name: Curl setup
-      command: curl -sL https://deb.nodesource.com/setup | bash -
+      shell: curl -sL https://deb.nodesource.com/setup | bash -
+      when: ansible_os_family == "Debian" and ansible_lsb.major_release|int <=7
 
     - name: Install build-essential
       apt: name=build-essential state=present
-
+      
     - name: Install Node.JS
       apt: name=nodejs state=present
 
     - name: Install Node.JS-legacy
       apt: name=nodejs-legacy state=present
+      when: ansible_os_family == "Debian" and ansible_lsb.major_release|int >7
 
     - name: Install Node.JS-NPM
       apt: name=npm state=present
+      when: ansible_os_family == "Debian" and ansible_lsb.major_release|int >7
 
     - name: Make alias node
       file: src=/usr/bin/nodejs dest=/usr/bin/node state=link 
+      when: ansible_os_family == "Debian" and ansible_lsb.major_release|int >7
 
     #Node.js install ends
 
