@@ -137,6 +137,13 @@
     # - name: Node.js | Make install
     #   shell: /usr/bin/make install chdir=/tmp/{{node_prefix}}/
     #   when: wanted_version_installed.rc == 1
+    - name: Install curL
+      apt: name=curl state=present
+    - name: Curl setup
+      command: curl -sL https://deb.nodesource.com/setup | bash -
+
+    - name: Install build-essential
+      apt: name=build-essential state=present
 
     - name: Install Node.JS
       apt: name=nodejs state=present
