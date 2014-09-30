@@ -202,16 +202,25 @@
       copy: src=files/post-receive
             dest=/haraka/haraka-list/hooks/post-receive
             mode=777
-   # - name: Git add remote
-    - name: Git Add Remote
-      command: cd /haraka/haraka-list.git && git checkout master -f &&  git remote set-url production --push --add {{ user1 }}@{{groups['haraka'] }}
+   # # - name: Git add remote
+   #  - name: Git Add Remote
+   #    command: cd /haraka/haraka-list.git && git checkout master -f &&  git remote set-url production --push --add {{ user1 }}@{{groups['haraka'] }}
 
    # Demander à Guillaume les commandes restantes
-    - name: Start Haraka
-      command: /usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server
+    - name: Start Haraka for Debian >7
+      command: /usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server/
+      when: ansible_os_family == "Debian" and ansible_lsb.major_release|int >7
+
+    - name: Start Haraka for Debian <=7
+      command: /usr/bin/forever start /usr/bin/haraka -c /haraka/server/ 
+      when: ansible_os_family == "Debian" and ansible_lsb.major_release|int <=7
     #Adding forever to the crontab
     - name: Crontab Haraka
       cron: name="Forever haraka" special_time=reboot job="/usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server"
+      when: ansible_os_family == "Debian" and ansible_lsb.major_release|int >7
+    - name: Crontab Haraka
+      cron: name="Forever haraka" special_time=reboot job="/usr/bin/forever start /usr/bin/haraka -c /haraka/server"
+      when: ansible_os_family == "Debian" and ansible_lsb.major_release|int <=7
 
   handlers:
   - name: Restart sshd
