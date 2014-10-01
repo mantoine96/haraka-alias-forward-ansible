@@ -186,7 +186,7 @@
       npm: name=forever global=yes state=latest
 
     - name: Prepare folders for Haraka Server
-      file: path=/haraka state=directory mode="777"
+      file: path=/haraka state=directory mode="777" recurse=yes
 
     - name: Download Haraka-Server
       git: repo=http://gitlab.sodewiva.com/mantoine/haraka-list-server.git
@@ -224,7 +224,7 @@
 
   handlers:
   - name: Restart sshd
-    action: service name=sshd state=restarted
+    action: service name=ssh state=restarted
   - name: reload iptables
     action: shell /sbin/iptables-restore < /etc/iptables.up
   - name: update tzdata

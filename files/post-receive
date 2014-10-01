@@ -10,7 +10,7 @@ if (branch =~ /master$/) == nil
 end
 
 # 3. Copy files to deploy directory
-deploy_to_dir = "/haraka/server"
+deploy_to_dir = "/haraka/server/config"
 `GIT_WORK_TREE="#{deploy_to_dir}" git checkout -f master`
 puts "DEPLOY: master(#{to}) copied to '#{deploy_to_dir}'"
 
