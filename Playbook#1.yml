@@ -207,18 +207,18 @@
    #    command: cd /haraka/haraka-list.git && git checkout master -f &&  git remote set-url production --push --add {{ user1 }}@{{groups['haraka'] }}
 
    # Demander à Guillaume les commandes restantes
-    - name: Start Haraka for Debian >7
+    - name: Start Haraka for Debian 8++
       command: /usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server/
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int >7
 
-    - name: Start Haraka for Debian <=7
+    - name: Start Haraka for Debian 7-
       command: /usr/bin/forever start /usr/bin/haraka -c /haraka/server/ 
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int <=7
     #Adding forever to the crontab
-    - name: Crontab Haraka
+    - name: Crontab Haraka for Debian 8++
       cron: name="Forever haraka" special_time=reboot job="/usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server"
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int >7
-    - name: Crontab Haraka
+    - name: Crontab Haraka for Debian 7-
       cron: name="Forever haraka" special_time=reboot job="/usr/bin/forever start /usr/bin/haraka -c /haraka/server"
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int <=7
 
