@@ -221,6 +221,8 @@
     - name: Crontab Haraka for Debian 7-
       cron: name="Forever haraka" special_time=reboot job="/usr/bin/forever start /usr/bin/haraka -c /haraka/server"
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int <=7
+    - name: Ensure permissions
+      file: path=/haraka state=directory mode="777" recurse=yes
 
   handlers:
   - name: Restart sshd
