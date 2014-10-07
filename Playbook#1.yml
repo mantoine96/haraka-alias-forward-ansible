@@ -101,6 +101,9 @@
       action: lineinfile dest=/etc/ssh/sshd_config regexp="^PermitRootLogin" line="PermitRootLogin no" state=present
       notify: Restart sshd
 
+    - name: Install Spamassassin
+      apt: name=spamassassin state=latest
+
     ##########################
     # Software               
     ##########################
@@ -113,6 +116,9 @@
 
     - name: Install Ruby
       apt: name=ruby state=present
+
+    - name: Install Vim
+      apt: name=vim state=present
 
     #NODE JS thanks to : https://github.com/aenglund/nodejs-ansible/ || Deprecated, now using package manager (and getting always the newest Nodejs)
 
