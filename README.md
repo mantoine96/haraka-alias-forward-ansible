@@ -17,7 +17,7 @@ Those variables are :
 Usage
 -----
 
-[Install Ansible](http://docs.ansible.com/intro_installation.html#installing-the-control-machine)
+###[Install Ansible](http://docs.ansible.com/intro_installation.html#installing-the-control-machine)###
 
 For Debian / Ubuntu :
 ```bash
@@ -34,14 +34,14 @@ For RedHat-based systems (Fedora, CentOS, RHEL) :
 $ sudo yum install ansible
 ```
 
-[Fill your inventory](#Configuration)
+###[Fill your inventory](#Configuration)###
 
-Copy your public RSA key in your servers
+###Copy your public RSA key in your servers###
 ```bash
 $ ssh-copy-id root@$SERVERIP
 ```
 
-Launch Playbook
+###Execute the Playbook###
 ```bash
 $ ansible-playbook haraka-ansible-playbook.yml
 ```
