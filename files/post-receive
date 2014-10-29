@@ -14,6 +14,3 @@ deploy_to_dir = "/haraka/server/config"
 `GIT_WORK_TREE="#{deploy_to_dir}" git checkout -f master`
 puts "DEPLOY: master(#{to}) copied to '#{deploy_to_dir}'"
 
-# 4.TODO: Deployment Tasks
-# i.e.: Run Puppet Apply, Restart Daemons, etc
-

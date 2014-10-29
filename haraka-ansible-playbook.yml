@@ -5,11 +5,7 @@
   vars:
     # Timezone
     timezone: 'Europe/Paris'
-    # Node
-    # node_version: "0.10.32"
-    # node_prefix: "node-v{{node_version}}"
-    # node_tarball: "{{node_prefix}}.tar.gz"
-    # node_path: "/usr/local"
+
   tasks:
 
 
@@ -104,6 +100,9 @@
     - name: Install Spamassassin
       apt: name=spamassassin state=latest
 
+    - name: Install unattended-upgrades
+      apt: name=unattended-upgrades state=present
+
     ##########################
     # Software               
     ##########################
@@ -120,32 +119,6 @@
     - name: Install Vim
       apt: name=vim state=present
 
-    #NODE JS thanks to : https://github.com/aenglund/nodejs-ansible/ || Deprecated, now using package manager (and getting always the newest Nodejs)
-
-    # - name: Node.js | Checking installed version of node.js
-    #   shell: /usr/bin/test "$(node -v 2> /dev/null)" = v{{node_version}}
-    #   register: wanted_version_installed
-    #   ignore_errors: True
-
-    # - name: Node.js | Fetching node.js source
-    #   action: get_url url=http://nodejs.org/dist/v{{node_version}}/{{node_tarball}} dest=/tmp/
-    #   when: wanted_version_installed.rc == 1
-
-    # - name: Node.js | Unpack node.js tarball
-    #   command: tar zxf {{node_tarball}} chdir=/tmp
-    #   when: wanted_version_installed.rc == 1
-
-    # - name: Node.js | Configure
-    #   shell: /usr/bin/python ./configure --prefix={{node_path}} chdir=/tmp/{{node_prefix}}
-    #   when: wanted_version_installed.rc == 1
-
-    # - name: Node.js | Make
-    #   shell: /usr/bin/make chdir=/tmp/{{node_prefix}}/
-    #   when: wanted_version_installed.rc == 1
-
-    # - name: Node.js | Make install
-    #   shell: /usr/bin/make install chdir=/tmp/{{node_prefix}}/
-    #   when: wanted_version_installed.rc == 1
     - name: Install curL
       apt: name=curl state=present
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int <=7
@@ -172,16 +145,6 @@
       file: src=/usr/bin/nodejs dest=/usr/bin/node state=link 
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int >7
 
-    #Node.js install ends
-
-    # - name: Remove Exim4
-    #   apt:  name=$item state=absent
-    #   with_items:
-    #   - exim4
-    #   - exim4-base
-    #   - exim4-config
-    #   - exim4-daemon-light
-
     - name: Remove Exim4
       apt: name=exim4* state=absent
 
@@ -194,25 +157,28 @@
     - name: Prepare folders for Haraka Server
       file: path=/haraka state=directory mode="777" recurse=yes
 
-    - name: Download Haraka-Server
-      git: repo=http://gitlab.sodewiva.com/mantoine/haraka-list-server.git
-            dest=/haraka/server
+    - name: Generate Haraka-Server
+      command: haraka -i /haraka/server
 
-    #- name: Create repo
-    - name: Clone haraka-list-testconfig
-      git: repo=http://gitlab.sodewiva.com/mantoine/haraka-list-testconfig.git 
-           bare=yes
-           dest=/haraka/haraka-list
+    - name: Download rcpt_to.alias_forward.js
+      get_url: url=https://raw.githubusercontent.com/gcollic/haraka-alias-forward/master/plugins/rcpt_to.alias_forward.js dest=/haraka/server/plugins/rcpt_to.alias_forward.js mode=0777
+
+    - name: Copy plugins config
+      copy: src=files/plugins 
+            dest=/haraka/server/config/plugins
+            mode=0777
+    - name: Create /haraka/haraka-list folders
+      file: path=/haraka/haraka-list state=directory mode="777"
+
+    - name: Init git repo
+      command: git init /haraka/haraka-list --bare   
+
     #- name: Import hook
     - name: Import hook post-receive
       copy: src=files/post-receive
             dest=/haraka/haraka-list/hooks/post-receive
             mode=777
-   # # - name: Git add remote
-   #  - name: Git Add Remote
-   #    command: cd /haraka/haraka-list.git && git checkout master -f &&  git remote set-url production --push --add {{ user1 }}@{{groups['haraka'] }}
 
-   # Demander à Guillaume les commandes restantes
     - name: Start Haraka for Debian 8++
       command: /usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server/
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int >7
@@ -220,13 +186,17 @@
     - name: Start Haraka for Debian 7-
       command: /usr/bin/forever start /usr/bin/haraka -c /haraka/server/ 
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int <=7
+    
     #Adding forever to the crontab
+    
     - name: Crontab Haraka for Debian 8++
       cron: name="Forever haraka" special_time=reboot job="/usr/local/bin/forever start /usr/local/bin/haraka -c /haraka/server"
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int >7
+    
     - name: Crontab Haraka for Debian 7-
       cron: name="Forever haraka" special_time=reboot job="/usr/bin/forever start /usr/bin/haraka -c /haraka/server"
       when: ansible_os_family == "Debian" and ansible_lsb.major_release|int <=7
+
     - name: Ensure permissions
       file: path=/haraka state=directory mode="777" recurse=yes
 
