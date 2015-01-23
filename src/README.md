@@ -1,7 +1,7 @@
 Haraka-Ansible
 ==============
 
-This project is an attempt at creating an [Ansible](http://www.ansible.com/) playbook capable of setting up a bare Debian server to a fully functional email server using [Node.JS](http://www.node.js/) and [Haraka](http://haraka.github.io/), using [haraka-alias-forward](http://github.com/chadsmith/haraka-alias-forward/).
+This project is an attempt at creating an [Ansible](http://www.ansible.com/) playbook capable of setting up a bare Debian server to a fully functional email server using [Node.JS](http://www.nodejs.org/) and [Haraka](http://haraka.github.io/), using [haraka-alias-forward](http://github.com/chadsmith/haraka-alias-forward/).
 
 Configuration
 -------------
